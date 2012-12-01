@@ -1,8 +1,9 @@
-(ns launchpad.core)
+(ns launchpad.core
+    (:gen-class :main true))
 
 ; Includes
 (use 'midi)
-(use 'clojure.core.match)
+(use 'matchure)
 
 ; Constants
 (def coords   (for [x (range 0 8) y (range 0 8)] [x y]))
@@ -12,25 +13,24 @@
 (def playing  (atom true))
 
 ; Declarations
-(declare cell-toggle central side switch stop-button random-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render toggle newstate alive? cell-on cell-off cell-to-note note-to-cell)
+(declare main cell-toggle central side switch stop-button random-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render toggle newstate alive? cell-on cell-off cell-to-note note-to-cell)
+
+(defn -main [] (main))
 
 ; Main
 (defn main [] (do (handle-events)
                   (clear-device)
                   (while true
-                     (if @playing (do (print ".")
-                                       (flush)
-                                       (swap! state step)
-                                       (render)))
+                     (if @playing (do (swap! state step)
+                                      (render)))
                      (Thread/sleep 250))))
 
 ; Library
 
 (defn handle-events [] (midi-handle-events keyboard #'handler))
 
-(defn handler [x y] (match [(:note x) (:vel x)]
-                           [ n         0      ] (switch n) ; Only trigger on the release
-                           [ n         _      ] (prn n)))
+(defn handler [x y] (cond-match [(:note x) (:vel x)]
+                                [?n         0      ] (switch n)))  ; Only trigger on the release
 
 (defn switch [n] (let [[x y] (note-to-cell n)]
                    (cond (and (< y 8) (< x 8)) (central [x y])
@@ -57,11 +57,11 @@
 
 (defn bound [a] (mod a 8))
 
-(defn alive? [c ns] (match [c ns] [0  3] 1
-                                  [0  _] 0
-                                  [1  3] 1
-                                  [1  4] 1
-                                  [1  _] 0 ))
+(defn alive? [c ns] (cond-match [c ns] [0  3] 1
+                                       [0  _] 0
+                                       [1  3] 1
+                                       [1  4] 1
+                                       [1  _] 0 ))
 
 (defn cell-on     [xy] (do (set-cell xy 1) (midi-note-on  lights (cell-to-note xy) 127)))
 (defn cell-off    [xy] (do (set-cell xy 0) (midi-note-off lights (cell-to-note xy))))
@@ -81,7 +81,7 @@
                     (cell-on [6 3])
                     (cell-on [5 2])))
 
-(defn stop-button   [] (cell-on (note-to-cell 71)))
+(defn stop-button   [] (cell-on (note-to-cell 72)))
 
 (defn random-button [] (cell-on (note-to-cell 119)))
 
