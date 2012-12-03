@@ -1,4 +1,4 @@
-(defproject launchpad "1.0.0-SNAPSHOT"
+(defproject launchpad "1.1.0"
   :main launchpad.core
   :description "FIXME: write description"
   :dependencies [ [org.clojure/clojure    "1.3.0"]
