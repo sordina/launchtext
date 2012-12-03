@@ -6,48 +6,60 @@
 (use 'matchure)
 
 ; Constants
-(def coords   (for [x (range 0 8) y (range 0 8)] [x y]))
-(def lights   (midi-out "Launchpad"))
-(def keyboard (midi-in  "Launchpad"))
-(def state    (atom {}))
-(def playing  (atom true))
+(def coords        (for [x (range 0 8) y (range 0 8)] [x y]))
+(def lights        (midi-out "Launchpad"))
+(def keyboard      (midi-in  "Launchpad"))
+(def state         (atom {}))
+(def side-bindings (atom {}))
+(def playing       (atom false))
+(def speed         (atom 100))
 
 ; Declarations
-(declare main cell-toggle central side switch stop-button random-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render toggle newstate alive? cell-on cell-off cell-to-note note-to-cell)
+(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render toggle newstate alive? cell-on cell-off cell-to-note note-to-cell)
 
 (defn -main [] (main))
 
 ; Main
 (defn main [] (do (handle-events)
                   (clear-device)
-                  (while true
-                     (if @playing (do (swap! state step)
-                                      (render)))
-                     (Thread/sleep 250))))
+                  (while true (if @playing (step @state))
+                              (Thread/sleep @speed))))
 
 ; Library
 
-(defn handle-events [] (midi-handle-events keyboard #'handler))
+(defn handle-events [] (midi-handle-events keyboard handler))
 
 (defn handler [x y] (cond-match [(:note x) (:vel x)]
                                 [?n         0      ] (switch n)))  ; Only trigger on the release
 
 (defn switch [n] (let [[x y] (note-to-cell n)]
-                   (cond (and (< y 8) (< x 8)) (central [x y])
-                         :else                 (side    [x y]))))
+                   (cond (and (<= 0 y) (< y 8) (<= 0 x) (< x 8)) (central [x y])
+                         :else                                   (side    [x y]))))
 
 (defn central [xy] (cell-toggle xy))
 
-(defn side [xy] (swap! playing not))
+(defn bind-button [xy f] (cell-on xy) [xy f])
 
-(defn render [] (doseq [xy coords] (toggle xy)))
+(defn slower [x] (* 1.4 x))
 
-(defn toggle [xy] (cond (= 1 (@state xy)) (cell-on  xy)
-                        :else             (cell-off xy)))
+(defn faster [x] (* 0.8 x))
 
-(defn step [m] (zipmap coords (map (curry newstate m) coords)))
+(defn setup-side-bindings [] (reset! side-bindings (apply hash-map (apply concat
+  [(bind-button [8 4] #(swap! playing not))
+   (bind-button [8 5] #(swap! speed faster))
+   (bind-button [8 6] #(swap! speed slower))]))))
 
-(defn newstate [m xy] (alive? (getZ m xy) (apply + (neighbours m xy))))
+(defn side [xy] ((@side-bindings xy)))
+
+(defn step [m] (doseq [xy coords] (newstate m xy)))
+
+(defn newstate [m xy]
+  (let [on-now  (getZ m xy)
+        on-next (alive? on-now (apply + (neighbours m xy)))]
+
+    ; Change the lights that need updating
+    (cond (< 0 (bit-and          on-now (bit-not on-next))) (cell-off xy)
+          (< 0 (bit-and (bit-not on-now)         on-next )) (cell-on  xy))))
 
 (defn neighbours [m xy]
   (let [ [x y]    xy
@@ -72,18 +84,13 @@
 
 (defn clear-device [] (do (doseq [xy coords] (cell-off xy)))
                           (glider)
-                          (stop-button)
-                          (random-button))
+                          (setup-side-bindings))
 
 (defn glider [] (do (cell-on [4 4])
                     (cell-on [5 4])
                     (cell-on [6 4])
                     (cell-on [6 3])
                     (cell-on [5 2])))
-
-(defn stop-button   [] (cell-on (note-to-cell 72)))
-
-(defn random-button [] (cell-on (note-to-cell 119)))
 
 (defn cell-to-note [xy] (let [[x y] xy] (+ x (* y 16))))
 
