@@ -1,5 +1,4 @@
-(ns launchpad.core
-    (:gen-class :main true))
+(ns launchtext.main (:gen-class :main true))
 
 ; Includes
 (use 'midi)
