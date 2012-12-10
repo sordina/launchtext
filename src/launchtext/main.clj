@@ -3,6 +3,7 @@
 ; Includes
 (use 'midi)
 (use 'matchure)
+(use 'seesaw.core)
 
 ; Constants
 (def coords        (for [x (range 0 8) y (range 0 8)] [x y]))
@@ -11,18 +12,36 @@
 (def state         (atom {}))
 (def side-bindings (atom {}))
 (def playing       (atom false))
+(def running       (atom true))
 (def speed         (atom 100))
 
+(defn exit [&args] (reset! running false))
+
+(native!)
+
+(def life-window   (frame  :title    "Conway's Game of Life on the Novation Launchpad"
+                           :on-close :exit))
+
+(def life-button   (button :text  "Exit"))
+
+(config! life-window :content life-button)
+(listen  life-button :action  exit)
+
 ; Declarations
-(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render toggle newstate alive? cell-on cell-off cell-to-note note-to-cell)
+(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render newstate alive? cell-on cell-off cell-to-note note-to-cell)
 
 (defn -main [] (main))
 
 ; Main
-(defn main [] (do (handle-events)
+(defn main [] (do (-> life-window pack! show!)
+                  (config! life-window :size [500 :by 100])
+                  (handle-events)
                   (clear-device)
-                  (while true (if @playing (step @state))
-                              (Thread/sleep @speed))))
+                  (glider)
+                  (while @running (if @playing (step @state))
+                                  (Thread/sleep @speed)))
+                  (clear-device)
+                  (System/exit 0))
 
 ; Library
 
@@ -44,9 +63,10 @@
 (defn faster [x] (* 0.8 x))
 
 (defn setup-side-bindings [] (reset! side-bindings (apply hash-map (apply concat
-  [(bind-button [8 4] #(swap! playing not))
-   (bind-button [8 5] #(swap! speed faster))
-   (bind-button [8 6] #(swap! speed slower))]))))
+  [(bind-button [8 0] #(reset! running false))
+   (bind-button [8 4] #(swap!  playing not))
+   (bind-button [8 5] #(swap!  speed faster))
+   (bind-button [8 6] #(swap!  speed slower))]))))
 
 (defn side [xy] ((@side-bindings xy)))
 
@@ -68,11 +88,11 @@
 
 (defn bound [a] (mod a 8))
 
-(defn alive? [c ns] (cond-match [c ns] [0  3] 1
-                                       [0  _] 0
-                                       [1  3] 1
-                                       [1  4] 1
-                                       [1  _] 0 ))
+(defn-match alive? ([0  3] 1)
+                   ([0  _] 0)
+                   ([1  3] 1)
+                   ([1  4] 1)
+                   ([1  _] 0))
 
 (defn cell-on     [xy] (do (set-cell xy 1) (midi-note-on  lights (cell-to-note xy) 127)))
 (defn cell-off    [xy] (do (set-cell xy 0) (midi-note-off lights (cell-to-note xy))))
@@ -82,7 +102,6 @@
 (defn set-cell [xy v] (swap! state (fn [m] (assoc m xy v))))
 
 (defn clear-device [] (do (doseq [xy coords] (cell-off xy)))
-                          (glider)
                           (setup-side-bindings))
 
 (defn glider [] (do (cell-on [4 4])
@@ -99,3 +118,4 @@
 
 ; Combinators
 (defn curry [f a] (fn [x] (f a x)))
+
