@@ -1,4 +1,4 @@
-(ns launchtext.blit)
+(ns launchtext.blit "Convert a string into a Bitmap")
 
 (use 'matchure)
 
@@ -71,7 +71,7 @@
 \. [[1 5] [0 5] [1 6] [0 6] ]
 })
 
-(defn space [as] (mapcat #(vector % []) as))
+(defn- space [as] (mapcat #(vector % []) as))
 
 (defn-match fromNil ([?a nil] a)
                     ([_  ?b ] b))
@@ -79,9 +79,9 @@
 (defn-match len ([[] ] 0)
                 ([?xs] (inc (apply max (map first xs)))))
 
-(defn l [i bs] (map second (filter #(= i (first %)) bs)))
+(defn- l [i bs] (map second (filter #(= i (first %)) bs)))
 
-(defn letter [c] (let [bits (fromNil [] (letters c))]
+(defn- letter [c] (let [bits (fromNil [] (letters c))]
                    (map #(l % bits)
                         (range 0 (inc (len bits))))))
 
@@ -90,9 +90,11 @@
 
 ; Test functions
 
-(defn g [i s] (if ((set s) i) "#" " "))
+(defn- g [i s] (if ((set s) i) "#" " "))
 
 (defn test-blit []
   (doseq [x (blit "Smoke Weed Every Day - Dr. Dre.")]
     (do (doseq [y (reverse (range 0 8))] (print (g y x)))
         (print "\n"))))
+
+(defn-match blit-at ([?b [?x ?y]] ((set ((apply vector b) x)) y)))

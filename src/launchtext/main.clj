@@ -4,11 +4,14 @@
 (use 'midi)
 (use 'matchure)
 (use 'seesaw.core)
+(use 'launchtext.blit)
 
 ; Constants
 (def coords        (for [x (range 0 8) y (range 0 8)] [x y]))
 (def lights        (midi-out "Launchpad"))
 (def keyboard      (midi-in  "Launchpad"))
+(def message       (atom (blit "Hello World")))
+(def tick          (atom 0))
 (def state         (atom {}))
 (def side-bindings (atom {}))
 (def playing       (atom false))
@@ -19,7 +22,7 @@
 
 (native!)
 
-(def life-window   (frame  :title    "Conway's Game of Life on the Novation Launchpad"
+(def life-window   (frame  :title    "Text Server for Novation Launchpad"
                            :on-close :exit))
 
 (def life-button   (button :text  "Exit"))
@@ -28,7 +31,7 @@
 (listen  life-button :action  exit)
 
 ; Declarations
-(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell glider handler bound curry getZ clear-device step render newstate alive? cell-on cell-off cell-to-note note-to-cell)
+(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell handler curry getZ clear-device step render newstate cell-on cell-off cell-to-note note-to-cell)
 
 (defn -main [] (main))
 
@@ -37,8 +40,10 @@
                   (config! life-window :size [500 :by 100])
                   (handle-events)
                   (clear-device)
-                  (glider)
-                  (while @running (if @playing (step @state))
+                  (while @running (if @playing
+                                    (step @state)
+                                    (swap! tick inc))
+
                                   (Thread/sleep @speed)))
                   (clear-device)
                   (System/exit 0))
@@ -72,27 +77,15 @@
 
 (defn step [m] (doseq [xy coords] (newstate m xy)))
 
+(defn message-at [xy] (blit-at @message xy))
+
 (defn newstate [m xy]
-  (let [on-now  (getZ m xy)
-        on-next (alive? on-now (apply + (neighbours m xy)))]
+  (let [on-now  (getZ  m xy)
+        on-next (message-at xy)]
 
     ; Change the lights that need updating
     (cond (< 0 (bit-and          on-now (bit-not on-next))) (cell-off xy)
           (< 0 (bit-and (bit-not on-now)         on-next )) (cell-on  xy))))
-
-(defn neighbours [m xy]
-  (let [ [x y]    xy
-         d        [-1 0 1]
-         ncoords  (for [dx d dy d] [(bound (+ x dx)) (bound (+ y dy))]) ]
-   (map (curry getZ m) ncoords)))
-
-(defn bound [a] (mod a 8))
-
-(defn-match alive? ([0  3] 1)
-                   ([0  _] 0)
-                   ([1  3] 1)
-                   ([1  4] 1)
-                   ([1  _] 0))
 
 (defn cell-on     [xy] (do (set-cell xy 1) (midi-note-on  lights (cell-to-note xy) 127)))
 (defn cell-off    [xy] (do (set-cell xy 0) (midi-note-off lights (cell-to-note xy))))
@@ -104,12 +97,6 @@
 (defn clear-device [] (do (doseq [xy coords] (cell-off xy)))
                           (setup-side-bindings))
 
-(defn glider [] (do (cell-on [4 4])
-                    (cell-on [5 4])
-                    (cell-on [6 4])
-                    (cell-on [6 3])
-                    (cell-on [5 2])))
-
 (defn cell-to-note [xy] (let [[x y] xy] (+ x (* y 16))))
 
 (defn note-to-cell [n ] [(mod n 16) (quot n 16)])
@@ -118,4 +105,3 @@
 
 ; Combinators
 (defn curry [f a] (fn [x] (f a x)))
-
