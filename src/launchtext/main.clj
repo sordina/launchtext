@@ -10,11 +10,11 @@
 (def coords        (for [x (range 0 8) y (range 0 8)] [x y]))
 (def lights        (midi-out "Launchpad"))
 (def keyboard      (midi-in  "Launchpad"))
-(def message       (atom (blit "Hello World")))
+(def message       (atom (blit "Hello World and David Gondwe  ")))
 (def tick          (atom 0))
 (def state         (atom {}))
 (def side-bindings (atom {}))
-(def playing       (atom false))
+(def playing       (atom true))
 (def running       (atom true))
 (def speed         (atom 100))
 
@@ -30,8 +30,8 @@
 (config! life-window :content life-button)
 (listen  life-button :action  exit)
 
-; Declarations
-(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell handler curry getZ clear-device step render newstate cell-on cell-off cell-to-note note-to-cell)
+; DONT JUDGE ME!!!
+(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell handler getZ clear-device step render newstate cell-on cell-off cell-to-note note-to-cell)
 
 (defn -main [] (main))
 
@@ -41,8 +41,9 @@
                   (handle-events)
                   (clear-device)
                   (while @running (if @playing
-                                    (step @state)
-                                    (swap! tick inc))
+                                    (do
+                                      (step @state)
+                                      (swap! tick inc)))
 
                                   (Thread/sleep @speed)))
                   (clear-device)
@@ -77,10 +78,10 @@
 
 (defn step [m] (doseq [xy coords] (newstate m xy)))
 
-(defn message-at [xy] (blit-at @message xy))
+(defn-match message-at ([[?x ?y]] (blit-at @message [(mod (+ x @tick) (count @message)) y])))
 
 (defn newstate [m xy]
-  (let [on-now  (getZ  m xy)
+  (let [on-now  (getZ m xy)
         on-next (message-at xy)]
 
     ; Change the lights that need updating
@@ -102,6 +103,3 @@
 (defn note-to-cell [n ] [(mod n 16) (quot n 16)])
 
 (defn getZ [m k] (let [v (m k)] (cond (nil? v) 0 :else v)))
-
-; Combinators
-(defn curry [f a] (fn [x] (f a x)))
