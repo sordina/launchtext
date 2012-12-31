@@ -9,12 +9,19 @@
 
 (def html "<!DOCTYPE HTML>\n <html> <head> <meta http-equiv='content-type' content='text/html; charset=utf-8'> <title>Launcpad Message</title> </head> <body> <h1>Launchpad Message</h1> <form action='/' method='post'> <p><input type='text' name='message'></p> <p><input type='submit' value='Post!'></p> </form> </body> </html>")
 
-(defroutes
-  main-routes (GET       "/" [] html)
-              (POST      "/" [message] (do (prn (blit message)) html))
-              (not-found "<h1>Page not found</h1>"))
+; And now the propper way!!
 
+(defn create-routes [target]
+     [ (GET       "/" [] html)
+       (POST      "/" {params :params} (let [message (params "message")] (do (reset! target (blit message)) html)))
+       (not-found "<h1>Page not found</h1>") ])
 
-(def app (-> #'main-routes wrap-params))
+(defn create-local-app [target]
+      (wrap-params (apply routes (create-routes target))))
 
-(defn start-web [] (run-jetty app {:port 9876  :join? false}))
+(defn run-server-async [options]
+  (let [ target    (or (:target options) (atom "Set :target!  "))
+         port      (or (:port   options) 9876)
+         local-app (create-local-app target)]
+
+       (run-jetty local-app {:port port :join? false})))

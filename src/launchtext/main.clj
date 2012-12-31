@@ -5,12 +5,13 @@
 (use 'matchure)
 (use 'seesaw.core)
 (use 'launchtext.blit)
+(use 'launchtext.web)
 
 ; Constants
 (def coords        (for [x (range 0 8) y (range 0 8)] [x y]))
 (def lights        (midi-out "Launchpad"))
 (def keyboard      (midi-in  "Launchpad"))
-(def message       (atom (blit "Hello World and David Gondwe  ")))
+(def message       (atom (blit "This...       Is...        SPARTAAAAAA!!!       ")))
 (def tick          (atom 0))
 (def state         (atom {}))
 (def side-bindings (atom {}))
@@ -39,6 +40,7 @@
 (defn main [] (do (-> life-window pack! show!)
                   (config! life-window :size [500 :by 100])
                   (handle-events)
+                  (run-server-async {:target message})
                   (clear-device)
                   (while @running (if @playing
                                     (do
