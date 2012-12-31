@@ -13,7 +13,7 @@
 
 (defn create-routes [target]
      [ (GET       "/" [] html)
-       (POST      "/" {params :params} (let [message (params "message")] (do (reset! target (blit message)) html)))
+       (POST      "/" {params :params} (let [message (params "message")] (do (reset! target (blit message)) (prn message) (prn @target) html)))
        (not-found "<h1>Page not found</h1>") ])
 
 (defn create-local-app [target]

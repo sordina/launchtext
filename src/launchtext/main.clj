@@ -21,8 +21,6 @@
 
 (defn exit [&args] (reset! running false))
 
-(native!)
-
 (def life-window   (frame  :title    "Text Server for Novation Launchpad"
                            :on-close :exit))
 
@@ -32,12 +30,11 @@
 (listen  life-button :action  exit)
 
 ; DONT JUDGE ME!!!
-(declare main cell-toggle central side switch stop-button handle-events neighbours set-cell handler getZ clear-device step render newstate cell-on cell-off cell-to-note note-to-cell)
-
-(defn -main [] (main))
+(declare cell-toggle central side switch stop-button handle-events neighbours set-cell handler getZ clear-device step render newstate cell-on cell-off cell-to-note note-to-cell)
 
 ; Main
 (defn main [] (do (-> life-window pack! show!)
+                  (native!)
                   (config! life-window :size [500 :by 100])
                   (handle-events)
                   (run-server-async {:target message})
@@ -50,6 +47,8 @@
                                   (Thread/sleep @speed)))
                   (clear-device)
                   (System/exit 0))
+
+(defn -main [] (main))
 
 ; Library
 
