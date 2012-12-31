@@ -1,4 +1,4 @@
-(defproject launchtext "0.0.1"
+(defproject launchtext "0.0.2"
   :main launchtext.main
   :description "Send text to the Novation Launchpad via a REST interface!c"
   :dependencies [ [org.clojure/clojure     "1.3.0" ]
