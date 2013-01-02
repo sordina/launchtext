@@ -8,6 +8,14 @@ A stand-alone Jar package is available [here.](http://s3.amazonaws.com/sordina.b
 
 The Launchpad must be plugged in before starting the app.
 
+## Web-Interface
+
+An ADVANCED web-interface is started on http://localhost:9876 which allows
+updating of the currently displayed message. This can be nicely automated with Curl,
+or something similar:
+
+    curl -s -X POST --data "message=Hello World!   " http://10.255.0.216:9876
+
 ## Controls (Side-Buttons)
 
     'stop'   - Pauses and unpauses the text
