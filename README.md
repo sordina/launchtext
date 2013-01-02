@@ -11,10 +11,10 @@ The Launchpad must be plugged in before starting the app.
 ## Web-Interface
 
 An ADVANCED web-interface is started on http://localhost:9876. This allows
-currently displayed message to be updated. Updates can be nicely automated with
+the currently displayed message to be updated. Updates can be nicely automated with
 `curl`, or something similar:
 
-    curl -s -X POST --data "message=Hello World!   " http://10.255.0.216:9876
+    curl -s -X POST --data "message=Hello World!   " http://localhost:9876
 
 ## Controls (Side-Buttons)
 
