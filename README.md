@@ -1,9 +1,3 @@
 # Scrolling Text with the Novation Launchpad
 
-A stand-alone Jar package is available in the [downloads](https://github.com/sordina/launchtext/downloads) section.
-
-## Libraries
-
-https://github.com/briancarper/gaka
-
-hiccup
+A stand-alone Jar package is available [here.](http://s3.amazonaws.com/sordina.binaries/launchtext-0.0.2-standalone.jar)
