@@ -7,7 +7,7 @@
 (use 'ring.middleware.params)
 (use 'launchtext.blit)
 
-(def html "<!DOCTYPE HTML>\n <html> <head> <meta http-equiv='content-type' content='text/html; charset=utf-8'> <title>Launcpad Message</title> </head> <body> <h1>Launchpad Message</h1> <form action='/' method='post'> <p><input type='text' name='message'></p> <p><input type='submit' value='Post!'></p> </form> </body> </html>")
+(def html "<!DOCTYPE HTML>\n <html> <head> <meta http-equiv='content-type' content='text/html; charset=utf-8'> <title>Launcpad Message</title> </head> <body> <h1>Launchpad Message</h1> <p> Source available <a href='https://github.com/sordina/launchtext'>on Github</a> </p> <form action='/' method='post'> <p><input type='text' name='message'></p> <p><input type='submit' value='Post!'></p> </form> </body> </html>")
 
 ; And now the propper way!!
 
