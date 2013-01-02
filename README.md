@@ -17,4 +17,5 @@ The Launchpad must be plugged in before starting the app.
 
 ## TODO
 
-Clean this crap up! :-)
+* Clean this crap up! :-)
+* Seems to allocate ~300M of memories to this application... I'm not good at computer...
