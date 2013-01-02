@@ -4,7 +4,7 @@
 
 <img src="https://raw.github.com/sordina/launchtext/master/images/launchtext.png" alt="Scrolling Text on the Launchpad" />
 
-A stand-alone Jar package is available [here.](http://s3.amazonaws.com/sordina.binaries/launchtext-0.0.2-standalone.jar)
+A stand-alone Jar package is available [here.](http://s3.amazonaws.com/sordina.binaries/launchtext-0.0.3-standalone.jar)
 
 The Launchpad must be plugged in before starting the app.
 
